@@ -1,0 +1,7 @@
+package: api
+output: ./generated.go
+generate:
+  models: true
+  gin-server: true
+output-options:
+  nullable-type: true

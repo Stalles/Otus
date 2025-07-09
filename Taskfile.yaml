@@ -1,0 +1,36 @@
+version: '3'
+
+tasks:
+  up:
+    desc: Сборка и запуск всех контейнеров (приложение и БД) в фоне
+    cmds:
+      - docker-compose up --build -d
+
+  down:
+    desc: Остановка и удаление всех контейнеров и томов
+    cmds:
+      - docker-compose down -v
+
+  build:
+    desc: Сборка Go-приложения
+    cmds:
+      - go build -o app .
+    sources:
+      - '**/*.go'
+    generates:
+      - app
+
+  run:
+    desc: Запуск Go-приложения (с авто-миграцией и автозапуском БД)
+    deps: [build]
+    cmds:
+      - docker-compose up -d
+      - ./app
+    env:
+      DB_HOST: '{{.DB_HOST | default "localhost"}}'
+      DB_PORT: '{{.DB_PORT | default "5432"}}'
+      DB_USER: '{{.DB_USER | default "postgres"}}'
+      DB_PASSWORD: '{{.DB_PASSWORD | default "yourpassword"}}'
+      DB_NAME: '{{.DB_NAME | default "social_network"}}'
+      JWT_SECRET: '{{.JWT_SECRET | default "your_jwt_secret"}}'
+      PORT: '{{.PORT | default "8080"}}' 
