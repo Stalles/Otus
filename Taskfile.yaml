@@ -9,7 +9,7 @@ tasks:
   down:
     desc: Остановка и удаление всех контейнеров и томов
     cmds:
-      - docker-compose down -v
+      - docker-compose down
 
   build:
     desc: Сборка Go-приложения
