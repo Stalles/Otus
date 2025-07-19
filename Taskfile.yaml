@@ -33,4 +33,9 @@ tasks:
       DB_PASSWORD: '{{.DB_PASSWORD | default "yourpassword"}}'
       DB_NAME: '{{.DB_NAME | default "social_network"}}'
       JWT_SECRET: '{{.JWT_SECRET | default "your_jwt_secret"}}'
-      PORT: '{{.PORT | default "8080"}}' 
+      PORT: '{{.PORT | default "8080"}}'
+
+  lint:
+    desc: Запуск go lint
+    cmds:
+      - golangci-lint run -v

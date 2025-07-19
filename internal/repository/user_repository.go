@@ -84,6 +84,46 @@ func (r *UserRepository) GetUserByID(ctx context.Context, id string) (*api.User,
 	return user, nil
 }
 
+func (r *UserRepository) SearchUsersByPrefix(ctx context.Context, firstName, lastName string) ([]api.User, error) {
+	var users []userDB
+	ds := r.db.From("users").Select(
+		goqu.I("id"),
+		goqu.I("first_name"),
+		goqu.I("second_name"),
+		goqu.I("birth_date"),
+		goqu.I("biography"),
+		goqu.I("city"),
+	).Where(
+		goqu.L("first_name LIKE ?", firstName+"%"),
+		goqu.L("second_name LIKE ?", lastName+"%"),
+	).Order(goqu.I("id").Asc())
+
+	sqlStr, args, _ := ds.ToSQL()
+	fmt.Printf("SQL: %s, args: %v\n", sqlStr, args)
+
+	err := ds.ScanStructsContext(ctx, &users)
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]api.User, 0, len(users))
+	for _, u := range users {
+		user := api.User{
+			Id:         &u.Id,
+			FirstName:  &u.FirstName,
+			SecondName: &u.SecondName,
+			Biography:  u.Biography,
+			City:       u.City,
+		}
+		if u.Birthdate != nil {
+			bd := openapi_types.Date{Time: *u.Birthdate}
+			user.Birthdate = &bd
+		}
+		result = append(result, user)
+	}
+	return result, nil
+}
+
 func (r *UserRepository) DB() *goqu.Database {
 	return r.db
 }
