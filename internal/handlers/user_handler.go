@@ -9,6 +9,7 @@ import (
 	"socialNetworkOtus/internal/actions/getuserbyid"
 	"socialNetworkOtus/internal/actions/login"
 	"socialNetworkOtus/internal/actions/register"
+	"socialNetworkOtus/internal/actions/search"
 	"socialNetworkOtus/internal/api"
 	"socialNetworkOtus/internal/repository"
 
@@ -23,6 +24,7 @@ type UserHandler struct {
 	RegisterService    *register.Service
 	LoginService       *login.Service
 	GetUserByIDService *getuserbyid.Service
+	SearchService      *search.Service
 }
 
 func NewUserHandler(userRepo *repository.UserRepository) *UserHandler {
@@ -38,6 +40,7 @@ func NewUserHandler(userRepo *repository.UserRepository) *UserHandler {
 		RegisterService:    register.NewService(userRepo),
 		LoginService:       login.NewService(userRepo),
 		GetUserByIDService: getuserbyid.NewService(userRepo),
+		SearchService:      search.NewService(userRepo),
 	}
 }
 
@@ -117,5 +120,14 @@ func (h *UserHandler) PutPostUpdate(c *gin.Context) {
 	c.JSON(501, gin.H{"error": "not implemented"})
 }
 func (h *UserHandler) GetUserSearch(c *gin.Context, params api.GetUserSearchParams) {
-	c.JSON(501, gin.H{"error": "not implemented"})
+	if params.FirstName == "" || params.LastName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "first_name and last_name are required"})
+		return
+	}
+	users, err := h.SearchService.SearchUsersByPrefix(c.Request.Context(), params.FirstName, params.LastName)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, users)
 }
